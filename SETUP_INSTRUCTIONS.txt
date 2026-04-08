@@ -1,0 +1,150 @@
+================================================================================
+                    TEXT TO PDF CONVERTER - SETUP INSTRUCTIONS
+================================================================================
+
+FOR SOMEONE WITHOUT PYTHON INSTALLED - FOLLOW THESE STEPS:
+
+================================================================================
+STEP 1: INSTALL PYTHON
+================================================================================
+
+macOS:
+------
+1. Open Terminal (Applications > Utilities > Terminal)
+2. Install Homebrew (if not installed):
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+3. Install Python:
+   brew install python3
+
+OR download from: https://www.python.org/downloads/
+
+Windows:
+--------
+1. Visit: https://www.python.org/downloads/
+2. Download Python 3.8 or higher
+3. Run the installer
+4. IMPORTANT: Check "Add Python to PATH" checkbox
+5. Click "Install Now"
+
+Linux (Ubuntu/Debian):
+----------------------
+sudo apt update
+sudo apt install python3 python3-pip
+
+================================================================================
+STEP 2: INSTALL LIBREOFFICE (Required for PDF conversion)
+================================================================================
+
+macOS:
+------
+brew install --cask libreoffice
+
+OR download from: https://www.libreoffice.org/download/
+
+Windows:
+--------
+1. Visit: https://www.libreoffice.org/download/
+2. Download and install LibreOffice
+
+Linux:
+------
+sudo apt install libreoffice
+
+================================================================================
+STEP 3: OPEN TERMINAL/COMMAND PROMPT
+================================================================================
+
+macOS/Linux: Open Terminal
+Windows: Open Command Prompt (Press Windows key, type "cmd", press Enter)
+
+================================================================================
+STEP 4: NAVIGATE TO PROJECT FOLDER
+================================================================================
+
+Type this command (replace with your actual folder path):
+
+macOS/Linux:
+cd "/Users/yourname/Desktop/convert text to pdf"
+
+Windows:
+cd "C:\Users\yourname\Desktop\convert text to pdf"
+
+================================================================================
+STEP 5: INSTALL PYTHON DEPENDENCIES
+================================================================================
+
+Type this command:
+
+macOS/Linux:
+pip3 install -r requirements.txt
+
+Windows:
+pip install -r requirements.txt
+
+If you get an error, try:
+python3 -m pip install -r requirements.txt
+
+================================================================================
+STEP 6: VERIFY INSTALLATION
+================================================================================
+
+Check Python version:
+python3 --version
+
+You should see: Python 3.x.x
+
+================================================================================
+STEP 7: RUN THE SCRIPT
+================================================================================
+
+Type:
+python3 docx_generator.py
+
+On Windows, you might need:
+python docx_generator.py
+
+================================================================================
+STEP 8: FOLLOW THE PROMPTS
+================================================================================
+
+1. Generate final pdfs? → Type: yes (or no)
+2. Enter folder → Type: . (period for current folder)
+3. Enter font-size → Type: 12 (or your preferred size)
+4. Enter line-spacing → Type: 1.5 (or your preferred spacing)
+5. Enter link → Type: https://yourwebsite.com/ (if generating PDFs)
+
+================================================================================
+IMPORTANT NOTES:
+================================================================================
+
+1. Make sure you have a "files_to_convert" folder with .md, .doc, or .docx question files
+2. Make sure header.png, footer.png, and first_and_last_page.pdf are in the project folder
+3. If PDF conversion fails, make sure LibreOffice is installed
+
+================================================================================
+TROUBLESHOOTING:
+================================================================================
+
+Problem: "python3: command not found"
+Solution: Python is not installed or not in PATH. Reinstall Python and check "Add to PATH"
+
+Problem: "pip3: command not found"
+Solution: Try: python3 -m pip install -r requirements.txt
+
+Problem: "Module not found"
+Solution: Run: pip3 install -r requirements.txt (make sure you're in the project folder)
+
+Problem: "PDF conversion failed"
+Solution: Install LibreOffice (see Step 2)
+
+Problem: "Permission denied" on Windows
+Solution: 
+1. Close Microsoft Word if it's open
+2. Close all programs using the output files
+3. Delete existing output files if needed
+4. Run Command Prompt as Administrator
+5. Check folder permissions (right-click folder → Properties → Security)
+6. See WINDOWS_TROUBLESHOOTING.md for detailed help
+
+================================================================================
+

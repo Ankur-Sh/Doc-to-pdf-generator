@@ -1,0 +1,60 @@
+================================================================================
+                    QUICK START GUIDE FOR WINDOWS USERS
+================================================================================
+
+STEP 1: INSTALL PYTHON
+----------------------
+1. Visit: https://www.python.org/downloads/
+2. Download Python 3.8 or higher
+3. Run installer
+4. ✅ CHECK "Add Python to PATH"
+5. Click "Install Now"
+
+STEP 2: INSTALL LIBREOFFICE
+---------------------------
+1. Visit: https://www.libreoffice.org/download/
+2. Download and install LibreOffice
+
+STEP 3: SET UP PROJECT
+----------------------
+1. Extract the project folder (if you have a ZIP file)
+2. Open Command Prompt in the project folder:
+   - Navigate to folder in File Explorer
+   - Click address bar, type "cmd", press Enter
+3. Run: setup.bat
+   (This installs all required packages)
+
+STEP 4: ADD YOUR FILES
+----------------------
+1. Create "files_to_convert" folder (if it doesn't exist)
+2. Add your .md, .docx, or .doc files to this folder
+
+STEP 5: RUN THE CONVERTER
+-------------------------
+1. Open Command Prompt in project folder
+2. Run: python docx_generator.py
+3. Follow the prompts
+
+OUTPUT FILES:
+-------------
+- DOCX files: output-docx/ folder
+- PDF files: output/ folder
+
+TROUBLESHOOTING:
+---------------
+- "Python not found": Use "py" instead of "python"
+- Permission errors: Run quick_fix.bat
+- PDF fails: Check LibreOffice is installed
+
+For detailed help, see:
+- WINDOWS_DISTRIBUTION_GUIDE.md
+- WINDOWS_TROUBLESHOOTING.md
+- SETUP_INSTRUCTIONS.txt
+
+================================================================================
+
+
+
+
+
+
