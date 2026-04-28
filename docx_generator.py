@@ -3,6 +3,7 @@ import subprocess
 import time
 import warnings
 import platform
+import re
 import docx2pdf
 import base64
 from io import BytesIO
@@ -168,6 +169,61 @@ def replace(v: list | str, old_str: str, new_str: str):
         case _:
             return v
 
+def extract_difficulty_value_and_clean_explanation(question_text: str, explanation_text: str):
+    difficulty_labels = ["difficulty", "difficulty level", "जटिलता स्तर", "कठिनाई स्तर"]
+    difficulty_value = ""
+    cleaned_explanation_lines = []
+
+    for line in explanation_text.splitlines():
+        stripped_line = line.strip()
+        lowered_line = stripped_line.lower()
+        is_difficulty_line = any(
+            lowered_line.startswith(label + ":") or stripped_line.startswith(label + ":")
+            for label in difficulty_labels
+        )
+
+        if is_difficulty_line:
+            value_parts = stripped_line.split(":", 1)
+            if len(value_parts) == 2 and value_parts[1].strip():
+                difficulty_value = value_parts[1].strip()
+            continue
+
+        cleaned_explanation_lines.append(line)
+
+    if not difficulty_value:
+        for line in question_text.splitlines():
+            stripped_line = line.strip()
+            lowered_line = stripped_line.lower()
+            if any(lowered_line.startswith(label + ":") or stripped_line.startswith(label + ":") for label in difficulty_labels):
+                value_parts = stripped_line.split(":", 1)
+                if len(value_parts) == 2 and value_parts[1].strip():
+                    difficulty_value = value_parts[1].strip()
+                    break
+
+    cleaned_explanation = "\n".join(cleaned_explanation_lines).strip()
+    return difficulty_value, cleaned_explanation
+
+def clean_classplus_question_text(question_text: str):
+    difficulty_labels = ["difficulty", "difficulty level", "जटिलता स्तर", "कठिनाई स्तर"]
+    cleaned_lines = []
+
+    for line in question_text.splitlines():
+        stripped_line = line.strip()
+        lowered_line = stripped_line.lower()
+        is_difficulty_line = any(
+            lowered_line.startswith(label + ":") or stripped_line.startswith(label + ":")
+            for label in difficulty_labels
+        )
+        if is_difficulty_line:
+            continue
+
+        # Remove inline image markers like [IMAGE:1]
+        without_image_marker = re.sub(r"\[IMAGE:\d+\]", "", line).rstrip()
+        if without_image_marker.strip():
+            cleaned_lines.append(without_image_marker)
+
+    return "\n".join(cleaned_lines).strip()
+
 def generate_classplus_table_formatted_document(file_name, questions, folder_name):
     idx = 0
     document = Document()
@@ -176,10 +232,34 @@ def generate_classplus_table_formatted_document(file_name, questions, folder_nam
         question = {k: replace(v, "*", "") for k, v in ques.items()}
         table = document.add_table(0, 3)
         table.style = 'TableGrid'
+
+        exam_category_value = str(question.get("exam_category", "") or "")
+        input_language_value = str(question.get("input_language", "") or "")
+        video_solution_value = str(question.get("video_solution", "") or "")
+        difficulty_value, cleaned_explanation = extract_difficulty_value_and_clean_explanation(
+            str(question.get("question", "") or ""),
+            str(question.get("explanation", "") or "")
+        )
+        cleaned_question_text = clean_classplus_question_text(str(question.get("question", "") or ""))
+
+        if not difficulty_value:
+            difficulty_value = str(question.get("difficulty", "") or "")
+
         row_cells = table.add_row().cells
+        exam_category_row_idx = len(table.rows) - 1
+        row_cells[0].text = "Exam Category"
+        row_cells[1].text = exam_category_value
+
+        row_cells = table.add_row().cells
+        input_language_row_idx = len(table.rows) - 1
+        row_cells[0].text = "Input Language"
+        row_cells[1].text = input_language_value
+
+        row_cells = table.add_row().cells
+        question_row_idx = len(table.rows) - 1
         row_cells[0].text = "Question"
         paragraph = row_cells[1].paragraphs[0]
-        question_before_table, rows, question_after_table = parse_question_and_table(question["question"])
+        question_before_table, rows, question_after_table = parse_question_and_table(cleaned_question_text)
 
         curr_style = add_text_with_style(paragraph, question_before_table.strip(), 0)
         if (len(rows) > 0):
@@ -197,8 +277,9 @@ def generate_classplus_table_formatted_document(file_name, questions, folder_nam
         
         curr_style = add_text_with_style(row_cells[1].add_paragraph(), question_after_table.strip(), curr_style)
         row_cells = table.add_row().cells
+        type_row_idx = len(table.rows) - 1
         row_cells[0].text = "Type"
-        row_cells[1].text = "multiple_choice"
+        row_cells[1].text = "SCQ"
         option_idx = 0
         for option in question["options"]:
             row_cells = table.add_row().cells
@@ -208,22 +289,32 @@ def generate_classplus_table_formatted_document(file_name, questions, folder_nam
             option_idx += 1
 
         row_cells = table.add_row().cells
+        solution_row_idx = len(table.rows) - 1
         row_cells[0].text = "Solution"
         paragraph = row_cells[1].paragraphs[0]
         paragraph.add_run(f"Answer: ({chr(97 + question["answer"])}) {question["options"][question["answer"]]}" + "\nExplanation: ").bold = True
-        add_text_with_style(paragraph, question["explanation"] + "\n", curr_style=0)
+        add_text_with_style(paragraph, cleaned_explanation + "\n", curr_style=0)
 
         if (len(question["source"]) > 0):
             paragraph.add_run(f"{question["source"]}").bold = True
 
         row_cells = table.add_row().cells
-        row_cells[0].text = "Marks"
-        row_cells[1].text = "2"
-        row_cells[2].text = "0.67"
+        difficulty_row_idx = len(table.rows) - 1
+        row_cells[0].text = "Difficulty"
+        row_cells[1].text = difficulty_value
+
+        row_cells = table.add_row().cells
+        video_solution_row_idx = len(table.rows) - 1
+        row_cells[0].text = "Video Solution"
+        row_cells[1].text = video_solution_value
         
-        table.cell(0, 1).merge(table.cell(0, 2))
-        table.cell(1, 1).merge(table.cell(1, 2))
-        table.cell(6, 1).merge(table.cell(6, 2))
+        table.cell(exam_category_row_idx, 1).merge(table.cell(exam_category_row_idx, 2))
+        table.cell(input_language_row_idx, 1).merge(table.cell(input_language_row_idx, 2))
+        table.cell(question_row_idx, 1).merge(table.cell(question_row_idx, 2))
+        table.cell(type_row_idx, 1).merge(table.cell(type_row_idx, 2))
+        table.cell(solution_row_idx, 1).merge(table.cell(solution_row_idx, 2))
+        table.cell(difficulty_row_idx, 1).merge(table.cell(difficulty_row_idx, 2))
+        table.cell(video_solution_row_idx, 1).merge(table.cell(video_solution_row_idx, 2))
 
         document.add_page_break()
         idx += 1
@@ -1985,6 +2076,8 @@ else:
 
 font_size = int(input(">> Enter font-size\n"))
 line_spacing = float(input(">> Enter line-spacing\n"))
+default_exam_category = input(">> Enter Exam Category for Classplus output\n").strip()
+default_input_language = input(">> Enter Input Language for Classplus output\n").strip()
 
 # Normalize path for Windows
 folder_name = os.path.normpath(folder_name)
@@ -2087,6 +2180,10 @@ for file_name in os.listdir(files_to_convert_dir):
         for q in valid_questions:
             if not q.get("explanation") or len(q["explanation"].strip()) == 0:
                 q["explanation"] = "No explanation provided."
+            if not q.get("exam_category"):
+                q["exam_category"] = default_exam_category
+            if not q.get("input_language"):
+                q["input_language"] = default_input_language
         
         check_state(valid_questions)
         
